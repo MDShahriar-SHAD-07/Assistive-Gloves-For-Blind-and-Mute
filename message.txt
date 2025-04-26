@@ -1,0 +1,323 @@
+#include <Wire.h>
+#include <Servo.h>
+#include <LiquidCrystal_I2C.h>
+#include <Servo.h>
+#include <SoftwareSerial.h>
+#include "mp3tf16p.h"
+
+MP3Player mp3(10,11);
+#define amiBashayJeteChai 1
+#define amiBethaPeyechi 2
+#define dukkhito 3
+#define hae 4
+#define amakeShahajjoKorun 5
+#define amiPaaniKhabo 6
+#define amarKhudaPeyeche 7
+#define washroomKothay 8
+#define apnakeDhonnobad 9
+#define daktarProyojon 10
+#define na 11
+#define amarNaamKishorPasha 12
+#define policeDekeAnun 13
+#define etarDaamKoto 14
+#define amiHariyeGiyechi 15
+
+Servo servo;
+const int xpin = A2;                  // x-axis of the accelerometer
+const int ypin = A1;                  // y-axis
+const int zpin = A0;                  // z-axis (only on 3-axis models)
+int angle = 100;
+
+const int trigPin_vr = 30;  
+const int echoPin_vr = 31; 
+const int trigPin_angle = 36;  
+const int echoPin_angle = 37;
+
+float duration, distance , distance_angle ,duration_angle;
+
+const int pir = 3;
+const int flexPin1 = A3;
+const int flexPin2 = A4;
+const int flexPin3 = A12;
+const int flexPin4 = A15;
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Configure software serial port (Sim)
+SoftwareSerial SIM900(16, 17);
+
+void setup() {
+
+  lcd.begin();
+  lcd.backlight();
+  Serial.begin(9600);
+  mp3.initialize();
+
+  pinMode(flexPin1, INPUT);
+  pinMode(flexPin2, INPUT);
+  pinMode(flexPin3, INPUT);
+  pinMode(flexPin4, INPUT);
+  pinMode(pir, INPUT);
+ 
+  pinMode(trigPin_vr, OUTPUT);  
+	pinMode(echoPin_vr, INPUT);  
+  pinMode(trigPin_angle, OUTPUT);  
+	pinMode(echoPin_angle, INPUT);  
+	Serial.begin(9600); 
+  servo.attach(8);
+  servo.write(angle); 
+
+  // Arduino communicates with SIM900 GSM shield at a baud rate of 19200
+  // Make sure that corresponds to the baud rate of your module
+  SIM900.begin(19200);
+  // Give time to your GSM shield log on to network
+  delay(20000);
+
+  // Make the phone call
+}
+
+void loop() {
+  int flexValue1, flexValue2, flexValue3, flexValue4;
+
+  int f1_1, f1_2, f1_3, f1_4;
+  int f2_1, f2_2, f2_3, f2_4;
+  int f3_1, f3_2, f3_3, f3_4;
+  int f4_1, f4_2, f4_3, f4_4;
+
+  int o1, o2, o3, o4;
+
+  int xVal = analogRead(xpin);
+  int yVal = analogRead(ypin);
+  int zVal = analogRead(zpin);
+
+  f1_1 = analogRead(flexPin1);
+  f1_2 = analogRead(flexPin1);
+  f1_3 = analogRead(flexPin1);
+  f1_4 = analogRead(flexPin1);
+  
+
+  f2_1 = analogRead(flexPin2);
+  f2_2 = analogRead(flexPin2);
+  f2_3 = analogRead(flexPin2);
+  f2_4 = analogRead(flexPin2);
+
+  f3_1 = analogRead(flexPin3);
+  f3_2 = analogRead(flexPin3);
+  f3_3 = analogRead(flexPin3);
+  f3_4 = analogRead(flexPin3);
+
+  f4_1 = analogRead(flexPin4);
+  f4_2 = analogRead(flexPin4);
+  f4_3 = analogRead(flexPin4);
+  f4_4 = analogRead(flexPin4);
+
+  if (f1_1 <= 900 && f1_2 <= 900 && f1_3 <= 900 && f1_4 <= 900) {
+    o1 = 0;
+  } else if (f1_1 > 900 && f1_2 > 900 && f1_3 > 900 && f1_4 > 900) {
+    o1 = 1;
+  }
+
+  if (f2_1 <= 600 && f2_2 <= 600 && f2_3 <= 600 && f2_4 <= 600) {
+    o2 = 0;
+  } else if (f2_1 > 600 && f2_2 > 600 && f2_3 > 600 && f2_4 > 600) {
+    o2 = 1;
+  }
+
+  if (f3_1 <= 750 && f3_2 <= 750 && f3_3 <= 750 && f3_4 <= 750) {
+    o3 = 0;
+  } else if (f3_1 > 750 && f3_2 > 750 && f3_3 > 750 && f3_4 > 750) {
+    o3 = 1;
+  }
+
+  if (f4_1 <= 600 && f4_2 <= 600 && f4_3 <= 600 && f4_4 <= 600) {
+    o4 = 0;
+  } else if (f4_1 > 600 && f4_2 > 600 && f4_3 > 600 && f4_4 > 600) {
+    o4 = 1;
+  }
+
+
+  int binary = o1 * 8 + o2 * 4 + o3 * 2 + o4;
+  String word = binaryToWord(binary);
+
+ // if (binary == 8) {
+    //SMS codes
+    //sendSMS();
+    //delay(500);
+   
+  //}
+  
+  //sound system
+  if (binary == 0) {
+    mp3.playTrackNumber(amakeShahajjoKorun , 30);
+  }
+  else if (binary == 1) {
+    mp3.playTrackNumber(amiPaaniKhabo , 30);
+  }
+  else if (binary == 2) {
+    mp3.playTrackNumber(amarKhudaPeyeche , 30);
+  }
+  else if (binary == 3) {
+    mp3.playTrackNumber(washroomKothay , 30);
+  }
+  else if (binary == 4) {
+    mp3.playTrackNumber(hae , 30);
+  }
+  else if (binary == 5) {
+    mp3.playTrackNumber(amiBethaPeyechi , 30);
+  }
+  else if (binary == 6) {
+    mp3.playTrackNumber(apnakeDhonnobad , 30);
+  }
+  else if (binary == 7) {
+    mp3.playTrackNumber(dukkhito , 30);
+  }
+  else if (binary == 8) {
+    mp3.playTrackNumber(daktarProyojon , 30);
+    callSomeone();
+  }
+  else if (binary == 9) {
+    mp3.playTrackNumber(na , 30);
+  }
+  else if (binary == 10) {
+    mp3.playTrackNumber(amarNaamKishorPasha, 30);
+  }
+  else if (binary == 11) {
+    mp3.playTrackNumber(policeDekeAnun , 30);
+  }
+  else if (binary == 12) {
+    mp3.playTrackNumber(etarDaamKoto , 30);
+  }
+  else if (binary == 13) {
+    mp3.playTrackNumber(amiHariyeGiyechi , 30);
+  }
+  else if (binary == 14) {
+    mp3.playTrackNumber(amiBashayJeteChai , 30);
+  }
+
+  Serial.print("Binary: ");
+  //Serial.print(binary);
+  Serial.print(o1);
+  //Serial.print(binary);
+  Serial.print(o2);
+  Serial.print(o3);
+  Serial.print(o4);
+  Serial.print(" -> Word: ");
+  Serial.println(word);
+  lcd.print(word);
+  // put your main code here, to run repeatedly:
+
+  // Print accelerometer values
+  Serial.print(xVal);
+  Serial.print("\t");
+  Serial.print(yVal);
+  Serial.print("\t");
+  Serial.print(zVal);
+  Serial.println();
+
+  int yThrashVal=280;
+
+  if (xVal > yThrashVal) {
+    digitalWrite(trigPin_vr, LOW);  
+	  delayMicroseconds(2);  
+	  digitalWrite(trigPin_vr, HIGH);  
+	  delayMicroseconds(10);  
+	  digitalWrite(trigPin_vr, LOW);  
+    duration = pulseIn(echoPin_vr, HIGH);
+    distance = (duration*.0343)/2; 
+    Serial.print("Distance: ");  
+	  Serial.println(distance);
+    servo.write(90); // Set servo to 40 degrees
+
+    for (angle =40; angle <= 110; angle=angle+70) {
+      servo.write(angle);
+      delay(2);
+    }
+  }
+
+  else if (xVal < yThrashVal) {
+    servo.write(40); // Set servo to 100 degrees
+    digitalWrite(trigPin_angle, LOW);  
+	  delayMicroseconds(2);  
+	  digitalWrite(trigPin_angle, HIGH);  
+	  delayMicroseconds(10);  
+	  digitalWrite(trigPin_angle, LOW);  
+    duration_angle = pulseIn(echoPin_angle, HIGH);
+    distance_angle = (duration_angle*.0343)/2;
+    Serial.println("         ");
+    Serial.print("Distance_Angle: ");  
+	  Serial.println(distance_angle);
+
+    for (angle = 110; angle >= 40; angle=angle-70) {
+      servo.write(angle);
+      delay(2);
+    }
+  }
+
+  else {
+    // Optionally, you can set the servo to a default position or keep it unchanged
+    // servo.write(10); // Uncomment if you want to set a default position
+  }
+
+  delay(500);
+
+}
+
+String binaryToWord(int binary) {
+  String word;
+  switch (binary) {
+    case 0: word = "Help                   "; break;
+    case 1: word = "Water                  "; break;
+    case 2: word = "Food                   "; break;
+    case 3: word = "Bathroom/Toilet                   "; break;
+    case 4: word = "YES                   "; break;
+    case 5: word = "Pain                   "; break;
+    case 6: word = "Thank you                   "; break;
+    case 7: word = "Sorry                   "; break;
+    case 8: word = "Doctor                   "; break;
+    case 9: word = "No                   "; break;
+    case 10: word = "Name                   "; break;
+    case 11: word = "Police                   "; break;
+    case 12: word = "Money                   "; break;
+    case 13: word = "Lost                   "; break;
+    case 14: word = "Home                   "; break;
+    case 15: word = "Idle                   "; break;
+    default: word = "Invalid                   ";
+  }
+  return word;
+}
+
+void callSomeone() {
+  // REPLACE THE X's WITH THE NUMER YOU WANT TO DIAL
+  // USE INTERNATIONAL FORMAT CODE FOR MOBILE NUMBERS
+  SIM900.println("ATD + +8801909699925;");
+  delay(100);
+  SIM900.println();
+
+  // In this example, the call only last 30 seconds
+  // You can edit the phone call duration in the delay time
+  delay(30000);
+  // AT command to hang up
+  SIM900.println("ATH");  // hang up
+}
+
+void sendSMS() {
+  // AT command to set SIM900 to SMS mode
+  SIM900.print("AT+CMGF=1\r");
+  delay(100);
+
+  // REPLACE THE X's WITH THE RECIPIENT'S MOBILE NUMBER
+  // USE INTERNATIONAL FORMAT CODE FOR MOBILE NUMBERS
+  SIM900.println("AT+CMGS=\"+8801909699925\"");
+  delay(100);
+
+  // REPLACE WITH YOUR OWN SMS MESSAGE CONTENT
+  SIM900.println("Save me!!!!!");
+  delay(100);
+
+  // End AT command with a ^Z, ASCII code 26
+  SIM900.println((char)26);
+  delay(100);
+  SIM900.println();
+  // Give module time to send SMS
+  delay(5000);
+}
